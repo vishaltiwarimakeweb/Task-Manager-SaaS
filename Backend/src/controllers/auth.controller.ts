@@ -104,7 +104,7 @@ export const loginController = async (req: Request, res: Response) => {
     const sendUser = await getUserService(user._id);
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
       path: "/",
     });
