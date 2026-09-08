@@ -106,6 +106,7 @@ export const loginController = async (req: Request, res: Response) => {
       httpOnly: true,
       sameSite: "none",
       secure: true,
+      domain: "https://task-manager-saa-s-nine.vercel.app",
       path: "/",
     });
     await redis.set(`userSession:${user._id}`, JSON.stringify(true));

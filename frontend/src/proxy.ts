@@ -7,10 +7,10 @@ export async function proxy(req: NextRequest) {
   try {
     const response = await fetch(`${baseURL}/api/auth/checklogin`, {
       method: "GET",
-      // credentials: "include",
-      // headers: {
-      //   Cookie: req.headers.get("cookie") ?? "",
-      // },
+      credentials: "include",
+      headers: {
+        Cookie: req.headers.get("cookie") ?? "",
+      },
     });
     const checkData: GeneralApiResponse = await response.json();
 

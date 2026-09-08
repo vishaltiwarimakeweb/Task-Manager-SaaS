@@ -19,7 +19,7 @@ export const authRouter = express.Router();
 authRouter.post("/register", registerController);
 authRouter.post("/login", loginController);
 authRouter.get("/profile", verifyUser, getProfileController);
-authRouter.get("/checklogin", checkLoginController);
+authRouter.get("/checklogin", verifyUser, checkLoginController);
 authRouter.patch("/updateprofile", verifyUser, updateProfileController);
 authRouter.patch(
   "/updatepassword",
