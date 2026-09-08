@@ -23,6 +23,7 @@ import { MultipleTasksResponse, Task } from "../types/types";
 import {
   setAllApiTasks,
   setAllApiUpcomingTasks,
+  setLastPageReducer,
 } from "../redux/slices/taskSlice";
 import { errorEmitter, successEmitter } from "../utils/emitter";
 import { useEffect, useMemo, useState } from "react";
@@ -176,6 +177,7 @@ export default function DashboardPage() {
       if (taskData.success) {
         //successEmitter(taskData.message, toasterTheme);
         setShowTasks(taskData.allTasks);
+        dispatch(setLastPageReducer(taskData.lastPage));
       } else errorEmitter(taskData.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -202,6 +204,7 @@ export default function DashboardPage() {
       if (taskResponse.success) {
         // successEmitter(taskResponse.message, toasterTheme);
         dispatch(setAllApiUpcomingTasks(taskResponse));
+        dispatch(setLastPageReducer(taskResponse.lastPage));
         setShowUpTasks(taskResponse.allTasks);
       } else errorEmitter(taskResponse.message, toasterTheme);
     } catch (error) {

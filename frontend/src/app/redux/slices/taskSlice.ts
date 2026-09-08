@@ -27,6 +27,9 @@ const taskSlice = createSlice({
       state.upcomingTasks = action.payload.allTasks;
       state.upLastPage = action.payload.lastPage;
     },
+    setLastPageReducer(state, action: PayloadAction<number>) {
+      state.lastPage = action.payload;
+    },
     setAllTasks(state, action: PayloadAction<Task[]>) {
       state.tasks = action.payload;
     },
@@ -78,5 +81,6 @@ export const {
   addUpcomingTask,
   updateUpcomingTask,
   deleteUpcomingTask,
+  setLastPageReducer,
 } = taskSlice.actions;
 export default taskSlice.reducer;
