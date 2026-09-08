@@ -3,6 +3,9 @@ import { baseURL } from "./app/utils/baseURL";
 import { GeneralApiResponse } from "./app/types/types";
 
 export async function proxy(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
   let isLogin: boolean = true;
   const token = req.cookies.get("token")?.value;
 
