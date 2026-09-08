@@ -279,7 +279,7 @@ export default function DashboardPage() {
       await getAllFilterTasks();
     };
     statusFilter === "all"
-      ? allTasks.length === 0 && fetchTasks()
+      ? (allTasks.length === 0 || page !== 1) && fetchTasks()
       : fetchFilterTasks();
   }, [page, statusFilter]);
 
@@ -620,7 +620,7 @@ export default function DashboardPage() {
                                         : "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
                                     }`}
                                   >
-                                    {allTasks.length}
+                                    {showAllTasks.length}
                                   </span>
                                 )}
                               </button>
