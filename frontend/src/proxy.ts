@@ -26,7 +26,7 @@ export async function proxy(req: NextRequest) {
     if (
       !checkData.success &&
       ((!isLogin && pathname.includes("/dashboard")) ||
-        (!isLogin && pathname.includes("/profle")) ||
+        (!isLogin && pathname.includes("/profile")) ||
         (!isLogin && pathname.includes("/create-task")) ||
         (!isLogin && pathname.includes("/update-password")))
     ) {
