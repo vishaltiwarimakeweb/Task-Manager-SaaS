@@ -4,12 +4,13 @@ import { GeneralApiResponse } from "./app/types/types";
 
 export async function proxy(req: NextRequest) {
   let isLogin: boolean = true;
+  const token = req.cookies.get("token")?.value;
   try {
     const response = await fetch(`${baseURL}/api/auth/checklogin`, {
       method: "GET",
       credentials: "include",
       headers: {
-        Cookie: req.headers.get("cookie") ?? "",
+        Cookie: token ?? "",
       },
     });
     const checkData: GeneralApiResponse = await response.json();

@@ -102,18 +102,18 @@ export const loginController = async (req: Request, res: Response) => {
       expiresIn: 7 * 24 * 60 * 60 * 1000,
     });
     const sendUser = await getUserService(user._id);
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      domain: "https://task-manager-saa-s-nine.vercel.app",
-      path: "/",
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   sameSite: "none",
+    //   secure: true,
+    //   path: "/",
+    // });
     await redis.set(`userSession:${user._id}`, JSON.stringify(true));
     return res.status(200).json({
       message: "Logged in successfully",
       success: true,
       user: sendUser,
+      token,
     });
   } catch (error) {
     console.error(error);

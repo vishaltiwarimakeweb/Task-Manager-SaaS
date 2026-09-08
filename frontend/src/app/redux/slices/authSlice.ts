@@ -37,7 +37,7 @@ export const registerUser = createAsyncThunk<AuthResponse, RegisterForm>(
 export const loginUser = createAsyncThunk<AuthResponse, LoginForm>(
   "auth/loginUser",
   async (form) => {
-    const response = await fetch(`${baseURL}/api/auth/login`, {
+    const response = await fetch(`/api/auth/login`, {
       method: "POST",
       credentials: "include",
       headers: {
