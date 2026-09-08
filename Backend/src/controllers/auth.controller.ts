@@ -105,7 +105,7 @@ export const loginController = async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       path: "/",
     });
     await redis.set(`userSession:${user._id}`, JSON.stringify(true));
