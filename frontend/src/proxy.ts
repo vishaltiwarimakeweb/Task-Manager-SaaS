@@ -13,6 +13,7 @@ export async function proxy(req: NextRequest) {
       },
     });
     const checkData: GeneralApiResponse = await response.json();
+    console.log("Check data : ", checkData);
     const { pathname } = req.nextUrl;
     if (!checkData.success) isLogin = false;
     if (
