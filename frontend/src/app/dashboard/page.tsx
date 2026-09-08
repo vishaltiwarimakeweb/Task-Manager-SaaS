@@ -278,9 +278,7 @@ export default function DashboardPage() {
     const fetchFilterTasks = async () => {
       await getAllFilterTasks();
     };
-    statusFilter === "all"
-      ? (allTasks.length === 0 || page !== 1) && fetchTasks()
-      : fetchFilterTasks();
+    statusFilter === "all" ? fetchTasks() : fetchFilterTasks();
   }, [page, statusFilter]);
 
   /*
