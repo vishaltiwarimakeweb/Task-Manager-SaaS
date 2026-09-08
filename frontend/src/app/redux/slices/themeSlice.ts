@@ -1,8 +1,8 @@
 import { Theme } from "@/app/types/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-const storedTheme = localStorage ? localStorage.getItem("theme") : null;
+
 const initialState: Theme = {
-  theme: storedTheme ? (storedTheme as "light" | "dark") : "light",
+  theme: "light",
   toastTheme: "dark",
 };
 const themeSlice = createSlice({
