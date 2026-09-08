@@ -5,10 +5,9 @@ import { GeneralApiResponse } from "./app/types/types";
 export async function proxy(req: NextRequest) {
   let isLogin: boolean = true;
   try {
-    console.log("Frontend cookie : ", req.headers.getSetCookie());
     const response = await fetch(`${baseURL}/api/auth/checklogin`, {
       method: "GET",
-      credentials: "include",
+      // credentials: "include",
       // headers: {
       //   Cookie: req.headers.get("cookie") ?? "",
       // },
