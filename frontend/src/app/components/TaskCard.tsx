@@ -18,7 +18,15 @@ import DeleteTaskModal from "./DeleteTaskModal";
 import { timeCalc } from "../utils/timeCalculator";
 import EditTaskModal from "./EditTaskModal";
 
-function TaskCard({ task, page, upPage }: TaskCardProps) {
+function TaskCard({
+  task,
+  page,
+  upPage,
+  showTasks,
+  setShowTasks,
+  showUpTasks,
+  setShowUpTasks,
+}: TaskCardProps) {
   const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
   const dispatch = useAppDispatch();
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -43,6 +51,9 @@ function TaskCard({ task, page, upPage }: TaskCardProps) {
       if (toggleData.success) {
         //  successEmitter(toggleData.message, toasterTheme);
         dispatch(updateTask(toggleData));
+        setShowTasks((prev) =>
+          prev.map((t) => (t._id === toggleData.task._id ? toggleData.task : t)),
+        );
       } else errorEmitter(toggleData.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -153,6 +164,10 @@ function TaskCard({ task, page, upPage }: TaskCardProps) {
                   setOpenModal={setOpenModal}
                   openEditModal
                   setOpenEditModal={setOpenEditModal}
+                  showTasks={showTasks}
+                  setShowTasks={setShowTasks}
+                  showUpTasks={showUpTasks}
+                  setShowUpTasks={setShowUpTasks}
                 />
               )}
               <button
@@ -172,6 +187,10 @@ function TaskCard({ task, page, upPage }: TaskCardProps) {
                   openModal
                   openDeleteModal
                   setOpenDeleteModal={setOpenDeleteModal}
+                  showTasks={showTasks}
+                  setShowTasks={setShowTasks}
+                  showUpTasks={showUpTasks}
+                  setShowUpTasks={setShowUpTasks}
                 />
               )}
             </div>

@@ -1,10 +1,10 @@
 import { AlertTriangle, X } from "lucide-react";
 import { Task, TaskResponse } from "../types/types";
-import { SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { baseURL } from "../utils/baseURL";
 import { errorEmitter, successEmitter } from "../utils/emitter";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { deleteTask } from "../redux/slices/taskSlice";
+import { deleteTask, deleteUpcomingTask } from "../redux/slices/taskSlice";
 import ButtonLoader from "./ButtonLoader";
 
 interface DeleteTaskModalProps {
@@ -14,6 +14,10 @@ interface DeleteTaskModalProps {
   openModal: boolean;
   page: number;
   setOpenModal: React.Dispatch<SetStateAction<boolean>>;
+  showTasks: Task[];
+  setShowTasks: Dispatch<SetStateAction<Task[]>>;
+  showUpTasks: Task[];
+  setShowUpTasks: Dispatch<SetStateAction<Task[]>>;
 }
 
 function DeleteTaskModal({
@@ -23,6 +27,10 @@ function DeleteTaskModal({
   openModal,
   page,
   setOpenModal,
+  showTasks,
+  setShowTasks,
+  showUpTasks,
+  setShowUpTasks,
 }: DeleteTaskModalProps) {
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
   const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
@@ -46,7 +54,17 @@ function DeleteTaskModal({
       const deleteData: TaskResponse = await response.json();
       if (deleteData.success) {
         successEmitter(deleteData.message, toasterTheme);
-        dispatch(deleteTask(deleteData));
+        if (task.status === "upcoming") {
+          dispatch(deleteUpcomingTask(deleteData));
+          setShowUpTasks((prev) =>
+            prev.filter((t) => t._id !== deleteData.task._id),
+          );
+        } else {
+          dispatch(deleteTask(deleteData));
+          setShowTasks((prev) =>
+            prev.filter((t) => t._id !== deleteData.task._id),
+          );
+        }
         setOpenDeleteModal(!openDeleteModal);
         setOpenModal(!openModal);
       } else errorEmitter(deleteData.message, toasterTheme);

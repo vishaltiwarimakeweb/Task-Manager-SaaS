@@ -71,7 +71,7 @@ export default function DashboardPage() {
   const completedTasks = useAppSelector(selectCompletedTasks);
   const workingTasks = useAppSelector(selectProgressTasks);
   const upcomingTasks = useAppSelector((state) => state.task.upcomingTasks);
-  const [showAllTasks, setShowAllTasks] = useState<Task[]>(allTasks);
+  const [showTasks, setShowTasks] = useState<Task[]>(allTasks);
   const [showUpTasks, setShowUpTasks] = useState<Task[]>(upcomingTasks);
   /*
    * Pagination state
@@ -121,7 +121,7 @@ export default function DashboardPage() {
       if (taskData.success) {
         dispatch(setAllApiTasks(taskData));
         //successEmitter(taskData.message, toasterTheme);
-        setShowAllTasks(taskData.allTasks);
+        setShowTasks(taskData.allTasks);
       } else errorEmitter(taskData.message, toasterTheme);
       const upResponse = await fetch(
         `${baseURL}/api/task/allupcomingtasks/${upPage}/${upLimit}`,
@@ -175,7 +175,7 @@ export default function DashboardPage() {
 
       if (taskData.success) {
         //successEmitter(taskData.message, toasterTheme);
-        setShowAllTasks(taskData.allTasks);
+        setShowTasks(taskData.allTasks);
       } else errorEmitter(taskData.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -228,7 +228,7 @@ export default function DashboardPage() {
       );
       const searchData: MultipleTasksResponse = await response.json();
       if (searchData.success) {
-        setShowAllTasks(searchData.allTasks);
+        setShowTasks(searchData.allTasks);
       } else errorEmitter(searchData.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -294,10 +294,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const reset = () => {
       if (statusFilter === "all") {
-        setShowAllTasks(allTasks);
+        setShowTasks(allTasks);
       }
       if (searchQuery.trim().length === 0) {
-        setShowAllTasks(allTasks);
+        setShowTasks(allTasks);
       }
     };
     reset();
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                                         : "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
                                     }`}
                                   >
-                                    {showAllTasks.length}
+                                    {showTasks.length}
                                   </span>
                                 )}
                               </button>
@@ -629,12 +629,16 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {showAllTasks.map((task) => (
+                      {showTasks.map((task) => (
                         <TaskCard
                           page={page}
                           upPage={upPage}
                           key={task._id}
                           task={task}
+                          showTasks={showTasks}
+                          setShowTasks={setShowTasks}
+                          showUpTasks={showUpTasks}
+                          setShowUpTasks={setShowUpTasks}
                         />
                       ))}
                     </div>
@@ -734,6 +738,10 @@ export default function DashboardPage() {
                             task={task}
                             page={page}
                             upPage={upPage}
+                            showTasks={showTasks}
+                            setShowTasks={setShowTasks}
+                            showUpTasks={showUpTasks}
+                            setShowUpTasks={setShowUpTasks}
                           />
                         ))}
                       </div>

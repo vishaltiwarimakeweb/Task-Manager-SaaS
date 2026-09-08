@@ -1,6 +1,6 @@
 import { CalendarDays, Pencil, X } from "lucide-react";
 import { Task, TaskForm, TaskResponse } from "../types/types";
-import { SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { baseURL } from "../utils/baseURL";
 import { errorEmitter, successEmitter } from "../utils/emitter";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
@@ -21,6 +21,10 @@ interface EditTaskProps {
   upPage: number;
   setOpenEditModal: React.Dispatch<SetStateAction<boolean>>;
   setOpenModal: React.Dispatch<SetStateAction<boolean>>;
+  showTasks: Task[];
+  setShowTasks: Dispatch<SetStateAction<Task[]>>;
+  showUpTasks: Task[];
+  setShowUpTasks: Dispatch<SetStateAction<Task[]>>;
 }
 function EditTaskModal({
   task,
@@ -30,6 +34,10 @@ function EditTaskModal({
   upPage,
   openModal,
   setOpenModal,
+  showTasks,
+  setShowTasks,
+  showUpTasks,
+  setShowUpTasks,
 }: EditTaskProps) {
   const dispatch = useAppDispatch();
   const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
@@ -69,7 +77,16 @@ function EditTaskModal({
         if (editData.task.status === "upcoming") {
           dispatch(addUpcomingTask(editData));
           dispatch(deleteTask(editData));
-        } else dispatch(updateTask(editData));
+          setShowUpTasks((prev) => [...prev, editData.task]);
+          setShowTasks((prev) =>
+            prev.filter((t) => t._id !== editData.task._id),
+          );
+        } else {
+          dispatch(updateTask(editData));
+          setShowTasks((prev) =>
+            prev.map((t) => (t._id === editData.task._id ? editData.task : t)),
+          );
+        }
       } else errorEmitter(editData.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -98,9 +115,16 @@ function EditTaskModal({
         setOpenModal(!openModal);
         if (editData.task.status === "upcoming") {
           dispatch(updateUpcomingTask(editData));
+          setShowUpTasks((prev) =>
+            prev.map((t) => (t._id === editData.task._id ? editData.task : t)),
+          );
         } else {
           dispatch(deleteUpcomingTask(editData));
           dispatch(addTask(editData));
+          setShowUpTasks((prev) =>
+            prev.filter((t) => t._id !== editData.task._id),
+          );
+          setShowTasks((prev) => [...prev, editData.task]);
         }
       } else errorEmitter(editData.message, toasterTheme);
     } catch (error) {

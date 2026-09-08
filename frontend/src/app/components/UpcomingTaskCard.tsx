@@ -6,9 +6,17 @@ import EditTaskModal from "./EditTaskModal";
 import { baseURL } from "../utils/baseURL";
 import { errorEmitter, successEmitter } from "../utils/emitter";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { deleteTask } from "../redux/slices/taskSlice";
+import { deleteUpcomingTask } from "../redux/slices/taskSlice";
 
-function UpcomingTaskCard({ task, page, upPage }: UpcomingTaskCardProps) {
+function UpcomingTaskCard({
+  task,
+  page,
+  upPage,
+  showTasks,
+  setShowTasks,
+  showUpTasks,
+  setShowUpTasks,
+}: UpcomingTaskCardProps) {
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [showAnim, setShowAnim] = useState<boolean>(false);
@@ -34,7 +42,10 @@ function UpcomingTaskCard({ task, page, upPage }: UpcomingTaskCardProps) {
       const deleteData: TaskResponse = await response.json();
       if (deleteData.success) {
         successEmitter(deleteData.message, toasterTheme);
-        dispatch(deleteTask(deleteData));
+        dispatch(deleteUpcomingTask(deleteData));
+        setShowUpTasks((prev) =>
+          prev.filter((t) => t._id !== deleteData.task._id),
+        );
         setOpenModal(!openModal);
       } else errorEmitter(deleteData.message, toasterTheme);
     } catch (error) {
@@ -101,6 +112,10 @@ function UpcomingTaskCard({ task, page, upPage }: UpcomingTaskCardProps) {
           openModal
           setOpenEditModal={setOpenEditModal}
           setOpenModal={setOpenModal}
+          showTasks={showTasks}
+          setShowTasks={setShowTasks}
+          showUpTasks={showUpTasks}
+          setShowUpTasks={setShowUpTasks}
         />
       )}
     </div>

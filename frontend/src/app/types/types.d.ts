@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react";
+
 export type Theme = {
   theme: "light" | "dark";
   toastTheme: "colored" | "dark";
@@ -79,12 +81,20 @@ export type TaskCardProps = {
   task: Task;
   page: number;
   upPage: number;
+  showTasks: Task[];
+  setShowTasks: Dispatch<SetStateAction<Task[]>>;
+  showUpTasks: Task[];
+  setShowUpTasks: Dispatch<SetStateAction<Task[]>>;
 };
 
 export type UpcomingTaskCardProps = {
   task: Task;
   page: number;
   upPage: number;
+  showTasks: Task[];
+  setShowTasks: Dispatch<SetStateAction<Task[]>>;
+  showUpTasks: Task[];
+  setShowUpTasks: Dispatch<SetStateAction<Task[]>>;
 };
 
 export type GeneralApiResponse = {
