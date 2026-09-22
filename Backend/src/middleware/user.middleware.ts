@@ -7,7 +7,6 @@ export const verifyUser = async (
   next: NextFunction,
 ) => {
   const token = req.cookies.token;
-  console.log("Cookies received are : ", req.cookies);
   if (!token) {
     return res.status(401).json({
       message: "Token not found",

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { baseURL } from "@/app/utils/baseURL";
+import { backEndURL } from "@/app/utils/baseURL";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
-    const response = await fetch(`${baseURL}/api/auth/login`, {
+    const response = await fetch(`${backEndURL}/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

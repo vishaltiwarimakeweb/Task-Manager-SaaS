@@ -1,0 +1,20 @@
+services:
+  taskweb-backend:
+    build:
+      context: ./Backend
+    ports:
+      - "7000:7000"
+    env_file:
+      - ./Backend/.env
+  taskweb-frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+        BACKEND_URL: ${BACKEND_URL}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+    environment:
+      BACKEND_URL: http://taskweb-backend:7000
+    ports:
+      - "3000:3000"
