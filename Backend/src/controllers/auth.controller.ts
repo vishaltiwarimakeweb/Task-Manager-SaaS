@@ -99,15 +99,16 @@ export const loginController = async (req: Request, res: Response) => {
       });
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: 7 * 24 * 60 * 60 * 1000,
+      expiresIn: "7d",
     });
     const sendUser = await getUserService(user._id);
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   sameSite: "none",
-    //   secure: true,
-    //   path: "/",
-    // });
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     await redis.set(`userSession:${user._id}`, JSON.stringify(true));
     return res.status(200).json({
       message: "Logged in successfully",
