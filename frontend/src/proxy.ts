@@ -9,8 +9,9 @@ export async function proxy(req: NextRequest) {
   }
   let isLogin: boolean = true;
   const token = req.cookies.get("token")?.value;
-
+  console.log("Proxy token : ", token);
   try {
+    console.log("Calling redis API");
     const response = await fetch(`${baseURL}/api/auth/checklogin`, {
       method: "GET",
       credentials: "include",
