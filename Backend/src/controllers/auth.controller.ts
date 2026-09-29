@@ -103,7 +103,7 @@ export const loginController = async (req: Request, res: Response) => {
     });
     const sendUser = await getUserService(user._id);
     res.cookie("token", token, {
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "none",
       secure: true,
       path: "/",
