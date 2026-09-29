@@ -30,6 +30,7 @@ export default function LoginPage() {
       if (loginUser.fulfilled.match(result)) {
         if (result.payload.success) {
           successEmitter(result.payload.message, toasterTheme);
+          console.log("Pushing to dashboard...");
           router.push("/dashboard");
         } else errorEmitter(result.payload.message, toasterTheme);
       }
