@@ -3,15 +3,16 @@ import { baseURL } from "./app/utils/baseURL";
 import { GeneralApiResponse } from "./app/types/types";
 
 export async function proxy(req: NextRequest) {
-  console.log("Proxy working", req.nextUrl.pathname);
+
   if (req.nextUrl.pathname.startsWith("/api")) {
     return NextResponse.next();
   }
   let isLogin: boolean = true;
   const token = req.cookies.get("token")?.value;
   console.log("Proxy token : ", token);
+  const { pathname } = req.nextUrl;
   try {
-    console.log("Calling redis API");
+    
     const response = await fetch(`${baseURL}/api/auth/checklogin`, {
       method: "GET",
       credentials: "include",
@@ -21,7 +22,6 @@ export async function proxy(req: NextRequest) {
     });
     const checkData: GeneralApiResponse = await response.json();
     console.log("Proxy check data : ", checkData);
-    const { pathname } = req.nextUrl;
     if (!checkData.success) isLogin = false;
     if (
       checkData.success &&
@@ -43,6 +43,14 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   } catch (error) {
     console.error("Backend unavilable", error);
+     if (
+       pathname.includes("/dashboard") ||
+       pathname.includes("/profile") ||
+       pathname.includes("/create-task") ||
+       pathname.includes("/update-password")
+     ) {
+       return NextResponse.redirect(new URL("/login", req.url));
+     }
     return NextResponse.next();
   }
 }
