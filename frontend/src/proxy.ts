@@ -3,6 +3,7 @@ import { baseURL } from "./app/utils/baseURL";
 import { GeneralApiResponse } from "./app/types/types";
 
 export async function proxy(req: NextRequest) {
+  console.log("Proxy working");
   if (req.nextUrl.pathname.startsWith("/api")) {
     return NextResponse.next();
   }
@@ -18,7 +19,7 @@ export async function proxy(req: NextRequest) {
       },
     });
     const checkData: GeneralApiResponse = await response.json();
-
+    console.log("Proxy check data : ", checkData);
     const { pathname } = req.nextUrl;
     if (!checkData.success) isLogin = false;
     if (
