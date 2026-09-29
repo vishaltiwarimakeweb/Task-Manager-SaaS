@@ -114,7 +114,6 @@ export const loginController = async (req: Request, res: Response) => {
       message: "Logged in successfully",
       success: true,
       user: sendUser,
-      token,
     });
   } catch (error) {
     console.error(error);
