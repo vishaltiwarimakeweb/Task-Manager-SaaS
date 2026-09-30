@@ -38,7 +38,7 @@ export const registerController = async (req: Request, res: Response) => {
     }
     if (actualPassword.trim().length < 8) {
       return res.status(400).json({
-        message: "Passwor must be atleast 8 characters long",
+        message: "Password must be atleast 8 characters long",
         success: false,
       });
     }
@@ -56,10 +56,18 @@ export const registerController = async (req: Request, res: Response) => {
       success: true,
       user: sendUser,
     });
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    console.log("Error : ", error);
+    if (error?.cause?.code === 11000) {
+      return res.status(400).json({
+        message: "Email already registered",
+        success: false,
+      });
+    }
     if (error instanceof mongoose.Error.ValidationError) {
+      console.log("Yes validation error");
       const messages = Object.values(error.errors).map((err) => err.message);
+
       return res.status(400).json({
         message: messages[0],
         success: false,
