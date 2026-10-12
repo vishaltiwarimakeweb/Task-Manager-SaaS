@@ -24,6 +24,7 @@ import {
   setAllApiTasks,
   setAllApiUpcomingTasks,
   setLastPageReducer,
+  modifyReFetch,
 } from "../redux/slices/taskSlice";
 import { errorEmitter, successEmitter } from "../utils/emitter";
 import { useEffect, useMemo, useState } from "react";
@@ -100,7 +101,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "pending" | "working" | "completed"
   >("all");
-
+  const fetchTasksSelector = useAppSelector((state) => state.task.fetchTasks);
   const getAllTasks = async () => {
     try {
       setPageLoading(true);
@@ -141,6 +142,7 @@ export default function DashboardPage() {
         //successEmitter(taskResponse.message, toasterTheme);
         dispatch(setAllApiUpcomingTasks(taskResponse));
         setShowUpTasks(taskResponse.allTasks);
+        dispatch(modifyReFetch());
       } else errorEmitter(taskResponse.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -178,6 +180,7 @@ export default function DashboardPage() {
         //successEmitter(taskData.message, toasterTheme);
         setShowTasks(taskData.allTasks);
         dispatch(setLastPageReducer(taskData.lastPage));
+        dispatch(modifyReFetch());
       } else errorEmitter(taskData.message, toasterTheme);
     } catch (error) {
       console.error(error);
@@ -281,8 +284,9 @@ export default function DashboardPage() {
     const fetchFilterTasks = async () => {
       await getAllFilterTasks();
     };
-    statusFilter === "all" ? fetchTasks() : fetchFilterTasks();
-  }, [page, statusFilter]);
+    fetchTasksSelector &&
+      (statusFilter === "all" ? fetchTasks() : fetchFilterTasks());
+  }, [page, statusFilter, fetchTasksSelector]);
 
   /*
    * Fetch upcoming-task page whenever upPage changes
@@ -307,19 +311,6 @@ export default function DashboardPage() {
   }, [statusFilter, searchQuery]);
 
   const progressPercent = useMemo(() => {
-    // console.log(
-    //   "Progress : ",
-    //   Math.ceil(
-    //     (completedTasks.length / (allTasks.length > 0 ? allTasks.length : 1)) *
-    //       100,
-    //   ),
-    //   " because completed = ",
-    //   completedTasks.length,
-    //   " and alltasks = ",
-    //   allTasks.length,
-    //   " and result = ",
-    //   completedTasks.length / allTasks.length,
-    // );
     return Math.ceil(
       (completedTasks.length / (allTasks.length > 0 ? allTasks.length : 1)) *
         100,
@@ -596,15 +587,16 @@ export default function DashboardPage() {
                               <button
                                 key={filter.key}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setStatusFilter(
                                     filter.key as
                                       | "all"
                                       | "pending"
                                       | "working"
                                       | "completed",
-                                  )
-                                }
+                                  );
+                                  dispatch(modifyReFetch());
+                                }}
                                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
                                   active
                                     ? "bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400"

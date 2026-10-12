@@ -1,5 +1,12 @@
 "use client";
-import { CalendarDays, ChevronDown, Plus } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  Plus,
+  Paperclip,
+  FileText,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { TaskForm, TaskResponse } from "../types/types";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
@@ -16,6 +23,7 @@ export default function CreateTaskPage() {
     status: "pending",
     dueDate: "",
   });
+  const [attachments, setAttachments] = useState<File[]>([]);
   const dispatch = useAppDispatch();
   const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
   const onChangeFunc = (
@@ -30,20 +38,25 @@ export default function CreateTaskPage() {
   const addTaskFunc = async () => {
     try {
       setBtnLoading(true);
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("status", form.status);
+      if (form.dueDate) {
+        formData.append("dueDate", form.dueDate);
+      }
+      attachments.map((file) => formData.append(`attachments`, file));
       const response = await fetch(`${baseURL}/api/task/createtask`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
+        body: formData,
       });
       const addData: TaskResponse = await response.json();
       if (addData.success) {
         successEmitter(addData.message, toasterTheme);
-        if (addData.task.status === "upcoming")
+        if (addData.task.status === "upcoming") {
           dispatch(addUpcomingTask(addData));
-        else dispatch(addTask(addData));
+        } else dispatch(addTask(addData));
         router.push("/dashboard");
       } else errorEmitter(addData.message, toasterTheme);
     } catch (error) {
@@ -187,6 +200,102 @@ export default function CreateTaskPage() {
                     />
                   </div>
                 </div>
+              </div>
+              {/* Attachments */}
+              <div>
+                {attachments.length > 5 && (
+                  <p className="text-red-600">
+                    You cannot upload more than 5 files per task
+                  </p>
+                )}
+                <div className="mb-2 flex items-center justify-between">
+                  <label
+                    htmlFor="attachments"
+                    className="block text-sm font-medium text-gray-800 dark:text-gray-200"
+                  >
+                    Attachments
+                  </label>
+
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    Optional
+                  </span>
+                </div>
+
+                <label
+                  htmlFor="attachments"
+                  className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-7 text-center transition hover:border-blue-400 hover:bg-blue-50/50 dark:border-gray-700 dark:bg-gray-950 dark:hover:border-blue-500 dark:hover:bg-blue-950/20"
+                >
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                    <Paperclip size={19} />
+                  </div>
+
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    Add attachments
+                  </p>
+
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Upload files related to this task
+                  </p>
+
+                  <span className="mt-3 inline-flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                    <Paperclip size={14} />
+                    Choose files
+                  </span>
+
+                  <input
+                    id="attachments"
+                    type="file"
+                    disabled={attachments.length > 5}
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        setAttachments(Array.from(e.target.files));
+                      }
+                    }}
+                  />
+                </label>
+
+                {/* Selected files */}
+                {attachments.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {attachments.map((file, index) => (
+                      <div
+                        key={`${file.name}-${index}`}
+                        className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-950"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                          <FileText size={17} />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-200">
+                            {file.name}
+                          </p>
+
+                          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAttachments((prev) =>
+                              prev.filter(
+                                (_, fileIndex) => fileIndex !== index,
+                              ),
+                            );
+                          }}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-red-500 dark:hover:bg-gray-800"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

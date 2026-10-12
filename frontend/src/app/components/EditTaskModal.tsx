@@ -1,4 +1,4 @@
-import { CalendarDays, Pencil, X } from "lucide-react";
+import { CalendarDays, Pencil, X, Paperclip, FileText } from "lucide-react";
 import { Task, TaskForm, TaskResponse } from "../types/types";
 import { Dispatch, SetStateAction, useState } from "react";
 import { baseURL } from "../utils/baseURL";
@@ -42,6 +42,7 @@ function EditTaskModal({
   const dispatch = useAppDispatch();
   const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [form, setForm] = useState<TaskForm>({
     title: task.title,
     description: task.description,
@@ -97,15 +98,29 @@ function EditTaskModal({
   const editUpcomingTask = async () => {
     try {
       setBtnLoading(true);
+      const formData = new FormData();
+      if (form.title) {
+        formData.append("title", form.title);
+      }
+      if (form.description) {
+        formData.append("description", form.description);
+      }
+      if (form.dueDate) {
+        formData.append("dueDate", form.dueDate);
+      }
+      if (form.status) {
+        formData.append("status", form.status);
+      }
+      formData.append("page", String(upPage));
+      if (attachments.length > 0) {
+        attachments.map((file) => formData.append("attachments", file));
+      }
       const response = await fetch(
         `${baseURL}/api/task/updatetask/${task._id}`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: "include",
-          body: JSON.stringify({ ...form, page: upPage }),
+          body: formData,
         },
       );
       const editData: TaskResponse = await response.json();
@@ -260,7 +275,95 @@ function EditTaskModal({
             </div>
           </div>
         </div>
+        {/* Attachments */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label
+              htmlFor="edit-attachments"
+              className="block text-sm font-medium text-slate-800 dark:text-slate-200"
+            >
+              Attachments
+            </label>
 
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              Optional
+            </span>
+          </div>
+
+          <label
+            htmlFor="edit-attachments"
+            className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 transition hover:border-indigo-400 hover:bg-indigo-50/50 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+              <Paperclip className="h-4 w-4" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                Add attachments
+              </p>
+
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                Choose files related to this task
+              </p>
+            </div>
+
+            <span className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
+              Choose files
+            </span>
+
+            <input
+              id="edit-attachments"
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setAttachments(Array.from(e.target.files));
+                }
+              }}
+            />
+          </label>
+
+          {/* Selected files */}
+          {attachments.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {attachments.map((file, index) => (
+                <div
+                  key={`${file.name}-${index}`}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <FileText className="h-4 w-4" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {file.name}
+                    </p>
+
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label={`Remove ${file.name}`}
+                    onClick={() => {
+                      setAttachments((prev) =>
+                        prev.filter((_, fileIndex) => fileIndex !== index),
+                      );
+                    }}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-red-500 dark:hover:bg-slate-800"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
           <button

@@ -5,12 +5,14 @@ interface InititalState {
   lastPage: number;
   upcomingTasks: Task[];
   upLastPage: number;
+  fetchTasks: boolean;
 }
 const initialState: InititalState = {
   tasks: [],
   lastPage: 1,
   upcomingTasks: [],
   upLastPage: 1,
+  fetchTasks: true,
 };
 const taskSlice = createSlice({
   name: "task",
@@ -68,6 +70,9 @@ const taskSlice = createSlice({
         (task) => task._id !== action.payload.task._id,
       );
     },
+    modifyReFetch(state) {
+      state.fetchTasks = !state.fetchTasks;
+    },
   },
 });
 export const {
@@ -82,5 +87,6 @@ export const {
   updateUpcomingTask,
   deleteUpcomingTask,
   setLastPageReducer,
+  modifyReFetch,
 } = taskSlice.actions;
 export default taskSlice.reducer;

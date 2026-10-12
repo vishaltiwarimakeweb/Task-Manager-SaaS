@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { baseURL } from "./app/utils/baseURL";
-import { GeneralApiResponse } from "./app/types/types";
 
 export async function proxy(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api")) {
@@ -8,7 +6,6 @@ export async function proxy(req: NextRequest) {
   }
   let isLogin: boolean = true;
   const token = req.cookies.get("token")?.value;
-  console.log("Proxy token : ", token);
   if (!token) isLogin = false;
 
   const { pathname } = req.nextUrl;
