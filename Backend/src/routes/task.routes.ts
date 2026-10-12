@@ -11,6 +11,7 @@ import {
   toggleTaskController,
   getAllFilteredTasksController,
 } from "../controllers/task.controller.js";
+import { upload } from "../config/multer.js";
 
 export const taskRouter = express.Router();
 
@@ -27,7 +28,17 @@ taskRouter.get(
   getAllUpcomingTasksController,
 );
 taskRouter.get("/gettask/:taskId", verifyUser, getTaskController);
-taskRouter.post("/createtask", verifyUser, createTaskController);
-taskRouter.patch("/updatetask/:taskId", verifyUser, updateTaskController);
+taskRouter.post(
+  "/createtask",
+  verifyUser,
+  upload.array("attachments", 5),
+  createTaskController,
+);
+taskRouter.patch(
+  "/updatetask/:taskId",
+  verifyUser,
+  upload.array("attachments", 5),
+  updateTaskController,
+);
 taskRouter.patch("/toggletask/:taskId", verifyUser, toggleTaskController);
 taskRouter.delete("/deletetask/:taskId", verifyUser, deleteTaskController);

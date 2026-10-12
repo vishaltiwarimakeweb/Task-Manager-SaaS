@@ -28,6 +28,8 @@ import {
   invalidateUpcomingAllTasks,
   invalidateLastPage,
 } from "../cache/task.cache.js";
+import { uploadFileToS3 } from "../config/s3service.js";
+import { attachmentModel } from "../models/attachment.model.js";
 
 export const getAllTasksController = async (
   req: Request | any,
@@ -347,6 +349,7 @@ export const createTaskController = async (
 ) => {
   try {
     const body = req.body;
+    const files = (req.files || []) as Express.Multer.File[];
     const { title, description, status, dueDate } = body;
     if (!title) {
       return res.status(400).json({
@@ -370,7 +373,25 @@ export const createTaskController = async (
       dueDate,
     };
     const newTask = await createTaskService(taskData);
-
+    if (files && files.length > 0) {
+      await Promise.allSettled(
+        files.map(async (file: any) => {
+          const key = `tasks/${newTask._id}/${Math.random() * 10000 + Date.now()}-${file.originalname}`;
+          const uploadResponse = await uploadFileToS3(
+            key,
+            file.buffer,
+            file.mimetype,
+          );
+          await attachmentModel.create({
+            key,
+            originalName: file.originalname,
+            size: file.size,
+            taskId: newTask._id,
+            contentType: file.mimetype,
+          });
+        }),
+      );
+    }
     if (newTask.status === "upcoming") {
       const allTasksResponse = await upTaskListingService(req.userId);
       const lastPage = Math.ceil(allTasksResponse.totalDocs / 5);
@@ -416,6 +437,7 @@ export const updateTaskController = async (
 ) => {
   try {
     const body = req.body;
+    const files = (req.files || []) as Express.Multer.File[];
     const { taskId } = req.params;
     const { title, description, status, dueDate, page } = body;
     if (!taskId) {
@@ -442,7 +464,21 @@ export const updateTaskController = async (
     if (description) taskData.description = description;
     if (status) taskData.status = status;
     if (dueDate) taskData.dueDate = dueDate;
-
+    if (files && files.length > 0) {
+      await Promise.allSettled(
+        files.map(async (file: any) => {
+          const key = `tasks/${task._id}/${Date.now() + Math.random() * 1000}-${file.originalname}`;
+          await uploadFileToS3(key, file.buffer, file.mimetype);
+          await attachmentModel.create({
+            key,
+            originalName: file.originalname,
+            size: file.size,
+            taskId: task._id,
+            contentType: file.mimetype,
+          });
+        }),
+      );
+    }
     taskData.addedMs = Date.now();
     const updatedTask = await updateTaskService(task._id, taskData);
     if (!updatedTask) {
