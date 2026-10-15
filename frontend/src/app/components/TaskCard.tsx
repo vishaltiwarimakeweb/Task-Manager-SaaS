@@ -1,15 +1,18 @@
 import {
   CheckCircle2,
   Circle,
+  Download,
+  FileText,
   Icon,
   MoreHorizontal,
+  Paperclip,
   Pencil,
   Trash2,
 } from "lucide-react";
 import { Task, TaskCardProps, TaskResponse } from "../types/types";
 import { dateFormatter } from "../utils/dateFormatter";
 import { baseURL } from "../utils/baseURL";
-import { errorEmitter, successEmitter } from "../utils/emitter";
+import { errorEmitter } from "../utils/emitter";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { updateTask } from "../redux/slices/taskSlice";
 import ButtonLoader from "./ButtonLoader";
@@ -52,7 +55,9 @@ function TaskCard({
         //  successEmitter(toggleData.message, toasterTheme);
         dispatch(updateTask(toggleData));
         setShowTasks((prev) =>
-          prev.map((t) => (t._id === toggleData.task._id ? toggleData.task : t)),
+          prev.map((t) =>
+            t._id === toggleData.task._id ? toggleData.task : t,
+          ),
         );
       } else errorEmitter(toggleData.message, toasterTheme);
     } catch (error) {
@@ -97,6 +102,41 @@ function TaskCard({
           <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-500">
             {task.description}
           </p>
+          {task.attachments && task.attachments.length > 0 && (
+            <div className="mt-3">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <Paperclip className="h-3.5 w-3.5" />
+                <span>Attachments ({task.attachments.length})</span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {task.attachments.map((attachment) => (
+                  <div
+                    key={attachment._id}
+                    className="flex max-w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60"
+                  >
+                    <FileText className="h-4 w-4 shrink-0 text-indigo-500 dark:text-indigo-400" />
+
+                    <span
+                      title={attachment.originalName}
+                      className="max-w-[180px] truncate text-xs font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      {attachment.originalName}
+                    </span>
+                    <a
+                      key={attachment._id}
+                      target="_blank"
+                      href={`${baseURL}/api/task/attachments/${attachment._id}/download`}
+                      className="flex max-w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60"
+                      title={`Download ${attachment.originalName}`}
+                    >
+                      <Download className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
             Updated{" "}
             {task.addedMs ? (

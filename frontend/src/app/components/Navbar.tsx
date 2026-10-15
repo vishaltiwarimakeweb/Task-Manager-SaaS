@@ -15,7 +15,9 @@ export default function Navbar() {
   const dispatch = useAppDispatch();
   const isLogin = useAppSelector((state) => state.auth.isLogin);
   const user = useAppSelector((state) => state.auth.user);
-  const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
+  const toasterTheme = useAppSelector(
+    (state) => state.theme.toastTheme as string,
+  );
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
   const router = useRouter();
   useEffect(() => {

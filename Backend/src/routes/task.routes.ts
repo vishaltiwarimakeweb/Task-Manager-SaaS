@@ -10,6 +10,8 @@ import {
   searchTaskController,
   toggleTaskController,
   getAllFilteredTasksController,
+  downloadAttachmentController,
+  deleteAttachmentController,
 } from "../controllers/task.controller.js";
 import { upload } from "../config/multer.js";
 
@@ -28,6 +30,11 @@ taskRouter.get(
   getAllUpcomingTasksController,
 );
 taskRouter.get("/gettask/:taskId", verifyUser, getTaskController);
+taskRouter.get(
+  "/attachments/:attachmentId/download",
+  verifyUser,
+  downloadAttachmentController,
+);
 taskRouter.post(
   "/createtask",
   verifyUser,
@@ -42,3 +49,8 @@ taskRouter.patch(
 );
 taskRouter.patch("/toggletask/:taskId", verifyUser, toggleTaskController);
 taskRouter.delete("/deletetask/:taskId", verifyUser, deleteTaskController);
+taskRouter.delete(
+  "/deleteattachment/:attachmentId",
+  verifyUser,
+  deleteAttachmentController,
+);

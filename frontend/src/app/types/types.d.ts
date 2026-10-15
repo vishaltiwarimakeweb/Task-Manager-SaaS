@@ -29,6 +29,7 @@ export type Task = {
   createdBy: string;
   addedMs: number;
   dueDate: string | null;
+  attachments: Attachment[];
 };
 
 export type TaskForm = {
@@ -66,6 +67,11 @@ export type TaskResponse = {
   success: boolean;
   task: Task;
 };
+export type AttachmentResponse = {
+  message: string;
+  success: boolean;
+  attachment: Attachment;
+};
 export type MultipleTasksResponse = {
   message: string;
   success: boolean;
@@ -100,4 +106,13 @@ export type UpcomingTaskCardProps = {
 export type GeneralApiResponse = {
   message: string;
   success: boolean;
+};
+
+export type Attachment = {
+  _id: string;
+  key: string;
+  originalName: string;
+  contentType: string;
+  size: number;
+  taskId: string;
 };

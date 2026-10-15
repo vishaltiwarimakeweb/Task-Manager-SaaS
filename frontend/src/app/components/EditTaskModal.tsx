@@ -1,5 +1,17 @@
-import { CalendarDays, Pencil, X, Paperclip, FileText } from "lucide-react";
-import { Task, TaskForm, TaskResponse } from "../types/types";
+import {
+  CalendarDays,
+  Pencil,
+  X,
+  Paperclip,
+  FileText,
+  Trash2,
+} from "lucide-react";
+import {
+  AttachmentResponse,
+  Task,
+  TaskForm,
+  TaskResponse,
+} from "../types/types";
 import { Dispatch, SetStateAction, useState } from "react";
 import { baseURL } from "../utils/baseURL";
 import { errorEmitter, successEmitter } from "../utils/emitter";
@@ -42,7 +54,9 @@ function EditTaskModal({
   const dispatch = useAppDispatch();
   const toasterTheme = useAppSelector((state) => state.theme.toastTheme);
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
+  const [delBtn, setDelBtn] = useState<boolean>(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [vanishTask, setVanishTask] = useState<boolean>(false);
   const [form, setForm] = useState<TaskForm>({
     title: task.title,
     description: task.description,
@@ -146,6 +160,31 @@ function EditTaskModal({
       console.error(error);
     } finally {
       setBtnLoading(false);
+    }
+  };
+
+  const deleteAttachment = async (attachmentId: string) => {
+    try {
+      setDelBtn(true);
+      const response = await fetch(
+        `${baseURL}/api/task/deleteattachment/${attachmentId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const deleteData: AttachmentResponse = await response.json();
+      // console.log("Delete data : ", deleteData);
+      if (deleteData.success) {
+        setVanishTask(!vanishTask);
+      } else errorEmitter(deleteData.message, toasterTheme);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDelBtn(false);
     }
   };
   return (
@@ -289,7 +328,6 @@ function EditTaskModal({
               Optional
             </span>
           </div>
-
           <label
             htmlFor="edit-attachments"
             className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 transition hover:border-indigo-400 hover:bg-indigo-50/50 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20"
@@ -324,7 +362,6 @@ function EditTaskModal({
               }}
             />
           </label>
-
           {/* Selected files */}
           {attachments.length > 0 && (
             <div className="mt-3 space-y-2">
@@ -361,6 +398,56 @@ function EditTaskModal({
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Existing Attachments */}
+          {task.attachments && task.attachments.length > 0 && (
+            <div
+              style={{
+                animation: vanishTask
+                  ? `vanishTask 0.5s linear forwards`
+                  : `none`,
+              }}
+            >
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                <Paperclip className="h-4 w-4 text-indigo-500" />
+                Existing attachments ({task.attachments.length})
+              </div>
+
+              <div className="space-y-2">
+                {task.attachments.map((attachment) => (
+                  <div
+                    key={attachment._id}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950"
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                      <FileText className="h-4 w-4" />
+                    </div>
+
+                    <p
+                      title={attachment.originalName}
+                      className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      {attachment.originalName}
+                    </p>
+
+                    <button
+                      type="button"
+                      disabled={delBtn}
+                      aria-label={`Delete ${attachment.originalName}`}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                    >
+                      <Trash2
+                        onClick={async () => {
+                          await deleteAttachment(attachment._id);
+                        }}
+                        className="h-4 w-4"
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

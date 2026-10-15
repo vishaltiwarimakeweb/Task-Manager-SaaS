@@ -1,6 +1,7 @@
 import type { ObjectIdQueryTypeCasting } from "mongoose";
 import { taskModel } from "../../models/task.model.js";
 import type { Task } from "../../types/types.js";
+import { attachmentModel } from "../../models/attachment.model.js";
 
 export const createTaskService = async (taskData: Task) => {
   const newTask = await taskModel.create(taskData);
@@ -29,6 +30,52 @@ export const deleteTaskService = async (taskId: ObjectIdQueryTypeCasting) => {
   return deletedTask;
 };
 
+export const getAttachmentService = async (
+  attachmentId: ObjectIdQueryTypeCasting,
+) => {
+  const attachment = await attachmentModel.findById(attachmentId).lean();
+  return attachment;
+};
+
+export const createAttachmentService = async (
+  key: string,
+  originalName: string,
+  size: number,
+  taskId: ObjectIdQueryTypeCasting,
+  contentType: string,
+) => {
+  const attachment = await attachmentModel.create({
+    key,
+    originalName,
+    size,
+    taskId,
+    contentType,
+  });
+  return attachment;
+};
+
+export const getAttachmentsByTaskIdService = async (
+  taskId: ObjectIdQueryTypeCasting,
+) => {
+  const allAttachments = await attachmentModel.find({ taskId });
+  return allAttachments;
+};
+
+export const deleteAttachmentsByTaskIdService = async (
+  taskId: ObjectIdQueryTypeCasting,
+) => {
+  const allAttachments = await attachmentModel.deleteMany({ taskId });
+  return allAttachments;
+};
+
+export const deleteAttachmentService = async (
+  attachmentId: ObjectIdQueryTypeCasting,
+) => {
+  const deletedAttachment =
+    await attachmentModel.findByIdAndDelete(attachmentId);
+  return deletedAttachment;
+};
+
 export const updateTaskService = async (
   taskId: ObjectIdQueryTypeCasting,
   data: any,
@@ -49,15 +96,22 @@ export const getAllTasksDashboardService = async (
     status: { $ne: "upcoming" },
   });
   const skip = (page - 1) * limit;
-  const allTasks = await taskModel
+  let allTasks = await taskModel
     .find({
       createdBy: userId as any,
       status: { $ne: "upcoming" },
     })
     .limit(limit)
     .skip(skip)
-    .sort({ addedMs: -1 });
-  return { allTasks, totalDocs };
+    .sort({ addedMs: -1 })
+    .lean();
+  const sendTasks: any[] = await Promise.all(
+    allTasks.map(async (task) => {
+      const attachments = await attachmentModel.find({ taskId: task._id });
+      return { ...task, attachments };
+    }),
+  );
+  return { allTasks: sendTasks, totalDocs };
 };
 
 export const getAllFilteredTasksDashboardService = async (
@@ -78,8 +132,17 @@ export const getAllFilteredTasksDashboardService = async (
     })
     .limit(limit)
     .skip(skip)
-    .sort({ addedMs: -1 });
-  return { allTasks, totalDocs };
+    .sort({ addedMs: -1 })
+    .lean();
+  const sendTasks = await Promise.all(
+    allTasks.map(async (task) => {
+      const attachments = await attachmentModel.find({ taskId: task._id });
+
+      return { ...task, attachments };
+    }),
+  );
+  console.log("Filtered alltasks : ", sendTasks);
+  return { allTasks: sendTasks, totalDocs };
 };
 
 export const getAllUpcomingTasksService = async (
@@ -99,8 +162,16 @@ export const getAllUpcomingTasksService = async (
     })
     .limit(limit)
     .skip(skip)
-    .sort({ addedMs: -1 });
-  return { allTasks, totalDocs };
+    .sort({ addedMs: -1 })
+    .lean();
+  const sendTasks = await Promise.all(
+    allTasks.map(async (task) => {
+      const attachments = await attachmentModel.find({ taskId: task._id });
+
+      return { ...task, attachments };
+    }),
+  );
+  return { allTasks: sendTasks, totalDocs };
 };
 
 export const upTaskListingService = async (

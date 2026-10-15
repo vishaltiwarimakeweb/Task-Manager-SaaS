@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import type { Request, Response } from "express";
 import {
   createTaskService,
@@ -11,6 +12,11 @@ import {
   updateTaskService,
   upTaskListingService,
   getAllFilteredTasksDashboardService,
+  getAttachmentService,
+  deleteAttachmentService,
+  createAttachmentService,
+  getAttachmentsByTaskIdService,
+  deleteAttachmentsByTaskIdService,
 } from "../services/taskServices/taskServices.js";
 import mongoose, { type ObjectIdQueryTypeCasting } from "mongoose";
 import type { Task } from "../types/types.js";
@@ -28,8 +34,12 @@ import {
   invalidateUpcomingAllTasks,
   invalidateLastPage,
 } from "../cache/task.cache.js";
-import { uploadFileToS3 } from "../config/s3service.js";
-import { attachmentModel } from "../models/attachment.model.js";
+import {
+  deleteS3Object,
+  getS3Object,
+  uploadFileToS3,
+} from "../config/s3service.js";
+import { pipeline } from "node:stream/promises";
 
 export const getAllTasksController = async (
   req: Request | any,
@@ -111,6 +121,7 @@ export const getAllFilteredTasksController = async (
       limit,
       filter,
     );
+    console.log("Filtered : ", allTasksResponse);
     if (!allTasksResponse.allTasks) {
       return res.status(500).json({
         message: "Internal Server Error",
@@ -183,7 +194,7 @@ export const getAllUpcomingTasksController = async (
     }
 
     await setAllUpcomingTasks(
-      allTasksResponse.allTasks as Task[],
+      allTasksResponse.allTasks as any[],
       req.userId,
       page,
     );
@@ -382,13 +393,13 @@ export const createTaskController = async (
             file.buffer,
             file.mimetype,
           );
-          await attachmentModel.create({
+          await createAttachmentService(
             key,
-            originalName: file.originalname,
-            size: file.size,
-            taskId: newTask._id,
-            contentType: file.mimetype,
-          });
+            file.originalname,
+            file.size,
+            newTask._id,
+            file.mimetype,
+          );
         }),
       );
     }
@@ -469,13 +480,13 @@ export const updateTaskController = async (
         files.map(async (file: any) => {
           const key = `tasks/${task._id}/${Date.now() + Math.random() * 1000}-${file.originalname}`;
           await uploadFileToS3(key, file.buffer, file.mimetype);
-          await attachmentModel.create({
+          await createAttachmentService(
             key,
-            originalName: file.originalname,
-            size: file.size,
-            taskId: task._id,
-            contentType: file.mimetype,
-          });
+            file.originalname,
+            file.size,
+            task._id,
+            file.mimetype,
+          );
         }),
       );
     }
@@ -583,6 +594,13 @@ export const deleteTaskController = async (
       }
       const allTasksResponse = await taskListingService(req.userId);
       const lastPage = Math.ceil(allTasksResponse.totalDocs / 5);
+      const allAttachments = await getAttachmentsByTaskIdService(taskId);
+      await Promise.all(
+        allAttachments.map(async (attachment) => {
+          await deleteS3Object(attachment.key);
+        }),
+      );
+      await deleteAttachmentsByTaskIdService(taskId);
 
       for (let i = 1; i <= lastPage; i++) {
         await invalidateAllTasks(req.userId as ObjectIdQueryTypeCasting, i);
@@ -615,6 +633,109 @@ export const deleteTaskController = async (
       message: "Task deleted successfully",
       success: true,
       task: deletedTask,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+    });
+  }
+};
+
+export const downloadAttachmentController = async (
+  req: Request | any,
+  res: Response,
+) => {
+  try {
+    const { attachmentId } = req.params;
+    if (!attachmentId) {
+      return res.status(400).json({
+        message: "Attachment ID not found",
+        success: false,
+      });
+    }
+    const attachment = await getAttachmentService(attachmentId);
+    if (!attachment) {
+      return res.status(404).json({
+        message: "Attachment not found",
+        success: false,
+      });
+    }
+    const task = await getTaskService(attachment.taskId);
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+        success: false,
+      });
+    }
+
+    if (!task.createdBy !== req.userId) {
+      return res.status(403).json({
+        message: "Cannot download other's attachments",
+        success: false,
+      });
+    }
+    const s3Response = await getS3Object(attachment.key);
+    const body = s3Response.Body;
+
+    if (!body) {
+      return res.status(404).json({
+        success: false,
+        message: "File content not found",
+      });
+    }
+
+    const nodeStream = Readable.fromWeb(
+      body.transformToWebStream() as import("node:stream/web").ReadableStream,
+    );
+
+    await pipeline(nodeStream, res);
+  } catch (error) {
+    console.error(error);
+    if (res.headersSent) {
+      res.destroy(error instanceof Error ? error : undefined);
+      return;
+    }
+    return res.status(500).json({
+      message: "Error while downloading the file",
+      success: false,
+    });
+  }
+};
+
+export const deleteAttachmentController = async (
+  req: Request | any,
+  res: Response,
+) => {
+  try {
+    const { attachmentId } = req.params;
+    const attachment = await getAttachmentService(attachmentId);
+    if (!attachment) {
+      return res.status(404).json({
+        message: "Attachment not found or already deleted",
+        success: false,
+      });
+    }
+    const task = await getTaskService(attachment.taskId);
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+        success: false,
+      });
+    }
+    if (task.createdBy.toString() !== req.userId) {
+      return res.status(403).json({
+        message: "Cannot delete other's attachments",
+        success: false,
+      });
+    }
+    await deleteS3Object(attachment.key);
+    const deletedAttachment = await deleteAttachmentService(attachmentId);
+    return res.status(200).json({
+      message: "Attachment deleted",
+      success: true,
+      attachment: deletedAttachment,
     });
   } catch (error) {
     console.error(error);

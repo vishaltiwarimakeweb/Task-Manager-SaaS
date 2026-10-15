@@ -117,9 +117,7 @@ export default function DashboardPage() {
       );
 
       const taskData: MultipleTasksResponse = await response.json();
-
-      //  console.log(taskData);
-
+      // console.log("Task response : ", taskData);
       if (taskData.success) {
         dispatch(setAllApiTasks(taskData));
         //successEmitter(taskData.message, toasterTheme);
