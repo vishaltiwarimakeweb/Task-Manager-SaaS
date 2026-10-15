@@ -9,6 +9,7 @@ import {
 import {
   AttachmentResponse,
   Task,
+  TaskAndAttachmentsResponse,
   TaskForm,
   TaskResponse,
 } from "../types/types";
@@ -17,11 +18,13 @@ import { baseURL } from "../utils/baseURL";
 import { errorEmitter, successEmitter } from "../utils/emitter";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
+  addAttachmentReducer,
   addTask,
   addUpcomingTask,
   deleteAttachmentReducer,
   deleteTask,
   deleteUpcomingTask,
+  updateAttachments,
   updateTask,
   updateUpcomingTask,
 } from "../redux/slices/taskSlice";
@@ -138,7 +141,7 @@ function EditTaskModal({
           body: formData,
         },
       );
-      const editData: TaskResponse = await response.json();
+      const editData: TaskAndAttachmentsResponse = await response.json();
       if (editData.success) {
         //successEmitter(editData.message, toasterTheme);
         setOpenEditModal(false);
@@ -151,6 +154,7 @@ function EditTaskModal({
         } else {
           dispatch(deleteUpcomingTask(editData));
           dispatch(addTask(editData));
+          if (editData.attachments) updateAttachments(editData);
           setShowUpTasks((prev) =>
             prev.filter((t) => t._id !== editData.task._id),
           );

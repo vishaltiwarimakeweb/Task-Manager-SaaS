@@ -2,6 +2,7 @@ import {
   AttachmentResponse,
   MultipleTasksResponse,
   Task,
+  TaskAndAttachmentsResponse,
   TaskResponse,
 } from "@/app/types/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -96,6 +97,20 @@ const taskSlice = createSlice({
         return task;
       });
     },
+    updateAttachments(
+      state,
+      action: PayloadAction<TaskAndAttachmentsResponse>,
+    ) {
+      state.tasks = state.tasks.map((task) => {
+        if (task._id === action.payload.task._id) {
+          task.attachments = [
+            ...task.attachments,
+            ...action.payload.attachments,
+          ];
+        }
+        return task;
+      });
+    },
   },
 });
 export const {
@@ -113,5 +128,6 @@ export const {
   modifyReFetch,
   addAttachmentReducer,
   deleteAttachmentReducer,
+  updateAttachments,
 } = taskSlice.actions;
 export default taskSlice.reducer;

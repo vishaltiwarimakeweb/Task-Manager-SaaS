@@ -116,3 +116,10 @@ export type Attachment = {
   size: number;
   taskId: string;
 };
+
+export type TaskAndAttachmentsResponse = {
+  message: string;
+  success: boolean;
+  task: Task;
+  attachments: Attachment[];
+};

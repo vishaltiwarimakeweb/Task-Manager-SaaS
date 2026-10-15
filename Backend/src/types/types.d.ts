@@ -33,3 +33,12 @@ export type MongoTask = {
   addedMs: number;
   createdBy: ObjectIdQueryTypeCasting;
 };
+
+export type Attachment = {
+  _id: ObjectIdQueryTypeCasting;
+  key: string;
+  originalName: string;
+  contentType: string;
+  size: number;
+  taskId: ObjectIdQueryTypeCasting;
+};

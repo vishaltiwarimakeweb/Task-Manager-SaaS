@@ -19,7 +19,7 @@ import {
   deleteAttachmentsByTaskIdService,
 } from "../services/taskServices/taskServices.js";
 import mongoose, { type ObjectIdQueryTypeCasting } from "mongoose";
-import type { Task } from "../types/types.js";
+import type { Attachment, Task } from "../types/types.js";
 import {
   getAllTasksache,
   getAllUpcomingTasksCache,
@@ -475,18 +475,20 @@ export const updateTaskController = async (
     if (description) taskData.description = description;
     if (status) taskData.status = status;
     if (dueDate) taskData.dueDate = dueDate;
+    const attachments: Attachment[] = [];
     if (files && files.length > 0) {
       await Promise.allSettled(
         files.map(async (file: any) => {
           const key = `tasks/${task._id}/${Date.now() + Math.random() * 1000}-${file.originalname}`;
           await uploadFileToS3(key, file.buffer, file.mimetype);
-          await createAttachmentService(
+          const attachment = await createAttachmentService(
             key,
             file.originalname,
             file.size,
             task._id,
             file.mimetype,
           );
+          attachments.push(attachment);
         }),
       );
     }
@@ -540,6 +542,7 @@ export const updateTaskController = async (
       message: "Task updated successfully",
       success: true,
       task: updatedTask,
+      attachments: attachments.length > 0 ? attachments : null,
     });
   } catch (error) {
     console.error(error);
@@ -732,6 +735,12 @@ export const deleteAttachmentController = async (
     }
     await deleteS3Object(attachment.key);
     const deletedAttachment = await deleteAttachmentService(attachmentId);
+    const lastPage = await getLastPage(req.userId);
+    if (lastPage) {
+      for (let i = 1; i <= lastPage; i++)
+        await invalidateAllTasks(req.userId as ObjectIdQueryTypeCasting, i);
+    }
+
     return res.status(200).json({
       message: "Attachment deleted",
       success: true,
