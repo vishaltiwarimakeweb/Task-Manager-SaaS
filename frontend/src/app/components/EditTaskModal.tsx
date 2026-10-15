@@ -19,6 +19,7 @@ import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
   addTask,
   addUpcomingTask,
+  deleteAttachmentReducer,
   deleteTask,
   deleteUpcomingTask,
   updateTask,
@@ -180,6 +181,7 @@ function EditTaskModal({
       // console.log("Delete data : ", deleteData);
       if (deleteData.success) {
         setVanishTask(!vanishTask);
+        dispatch(deleteAttachmentReducer(deleteData));
       } else errorEmitter(deleteData.message, toasterTheme);
     } catch (error) {
       console.error(error);

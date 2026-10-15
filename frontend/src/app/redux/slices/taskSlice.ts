@@ -1,4 +1,9 @@
-import { MultipleTasksResponse, Task, TaskResponse } from "@/app/types/types";
+import {
+  AttachmentResponse,
+  MultipleTasksResponse,
+  Task,
+  TaskResponse,
+} from "@/app/types/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface InititalState {
   tasks: Task[];
@@ -73,6 +78,24 @@ const taskSlice = createSlice({
     modifyReFetch(state) {
       state.fetchTasks = !state.fetchTasks;
     },
+    addAttachmentReducer(state, action: PayloadAction<AttachmentResponse>) {
+      state.tasks = state.tasks.map((task) => {
+        if (action.payload.attachment.taskId === task._id) {
+          task.attachments.push(action.payload.attachment);
+        }
+        return task;
+      });
+    },
+    deleteAttachmentReducer(state, action: PayloadAction<AttachmentResponse>) {
+      state.tasks = state.tasks.map((task) => {
+        if (action.payload.attachment.taskId === task._id) {
+          task.attachments = task.attachments.filter(
+            (attachment) => attachment._id !== action.payload.attachment._id,
+          );
+        }
+        return task;
+      });
+    },
   },
 });
 export const {
@@ -88,5 +111,7 @@ export const {
   deleteUpcomingTask,
   setLastPageReducer,
   modifyReFetch,
+  addAttachmentReducer,
+  deleteAttachmentReducer,
 } = taskSlice.actions;
 export default taskSlice.reducer;
