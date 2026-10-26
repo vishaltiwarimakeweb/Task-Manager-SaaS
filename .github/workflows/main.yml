@@ -12,8 +12,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: List directory files and folders
-        run: ls -la
-      
-      - name: Print a message
-        run: echo "Hello from GitHub Actions!"
+      - name: Set up Node.js
+        uses: actions/set-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
+          
