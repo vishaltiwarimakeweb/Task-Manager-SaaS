@@ -12,5 +12,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: List directory files and folders
+        run: ls -la
+      
       - name: Print a message
         run: echo "Hello from GitHub Actions!"
