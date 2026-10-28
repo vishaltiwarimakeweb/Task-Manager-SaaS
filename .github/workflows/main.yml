@@ -57,7 +57,7 @@ jobs:
       contents: read
     
     env:
-      AWS_REGION: "ap-south-1"
+      AWS_REGION: ${vars.AWS_REGION}
       NEXT_PUBLIC_BASE_URL: ""
       NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${vars.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
       NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${vars.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
@@ -73,7 +73,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${vars.AWS_ROLE_ARN}
-          region: ${env.AWS_REGION}
+          aws-region: ${env.AWS_REGION}
 
       - name: Login to AWS ECR
         uses: aws-actions/amazon-ecr-login@v2
