@@ -87,7 +87,7 @@ jobs:
       - name: Authenticate to AWS with OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::576889497241:role/TaskWeb-ECR-Push-Policy
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           audience: sts.amazonaws.com
 
