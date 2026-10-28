@@ -72,7 +72,7 @@ jobs:
               exit 1
               ;;
           esac
-      AWS_REGION: "ap-south-1"
+      AWS_REGION: ${{ vars.AWS_REGION }}
       NEXT_PUBLIC_BASE_URL: ""
       NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ vars.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
       NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ vars.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
