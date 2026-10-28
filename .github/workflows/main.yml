@@ -57,6 +57,21 @@ jobs:
       contents: read
     
     env:
+      run: |
+          if [ -z "$AWS_ROLE_ARN" ]; then
+            echo "ERROR: AWS_ROLE_ARN is empty or unavailable"
+            exit 1
+          fi
+          echo "AWS_ROLE_ARN is configured."
+          case "$AWS_ROLE_ARN" in
+            arn:aws:iam::576889497241:role/*)
+              echo "Role ARN format looks correct."
+              ;;
+            *)
+              echo "ERROR: Unexpected role ARN format."
+              exit 1
+              ;;
+          esac
       AWS_REGION: "ap-south-1"
       NEXT_PUBLIC_BASE_URL: ""
       NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ vars.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
