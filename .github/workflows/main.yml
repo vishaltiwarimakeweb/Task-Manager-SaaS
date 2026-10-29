@@ -110,25 +110,58 @@ jobs:
       - name: Check source IP
         run: curl -4 https://ifconfig.me
     
-      - name: Deploy to AWS
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_USER: ${{ vars.EC2_USER }}
-          EC2_HOST: ${{ vars.EC2_HOST }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          EC2_REGISTRY_HOSTNAME: ${{ vars.EC2_REGISTRY_HOSTNAME }}
+      - name: Trigger deployment through SSM
+        shell: bash
         run: |
-          printf '%s\n' "$EC2_SSH_KEY" > key.pem
-          chmod 600 key.pem
+          set -euo pipefail
 
-          ssh -i key.pem "$EC2_USER@$EC2_HOST" "AWS_REGION='$AWS_REGION' EC2_REGISTRY_HOSTNAME='$EC2_REGISTRY_HOSTNAME' bash -s" <<'REMOTE' '
-            set -e
-            cd /home/ubuntu/Task-Manager-SaaS
-            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$EC2_REGISTRY_HOSTNAME"
-            docker compose pull
-            docker compose up -d --remove-orphans
-          '
-          rm -f key.pem
+          COMMAND_ID=$(aws ssm send-command \
+            --region ap-south-1 \
+            --instance-ids i-0ff57faaa63fae65b \
+            --document-name AWS-RunShellScript \
+            --comment "Deploy TaskWeb from GitHub Actions" \
+            --parameters '{"commands":["sudo -u ubuntu /home/ubuntu/deploy.sh"]}' \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "SSM command ID: $COMMAND_ID"
+
+          for attempt in $(seq 1 30); do
+            STATUS=$(aws ssm get-command-invocation \
+              --region ap-south-1 \
+              --command-id "$COMMAND_ID" \
+              --instance-id i-0ff57faaa63fae65b \
+              --query 'Status' \
+              --output text 2>/dev/null || echo "Pending")
+
+            echo "Deployment status: $STATUS"
+
+            case "$STATUS" in
+              Success)
+                aws ssm get-command-invocation \
+                  --region ap-south-1 \
+                  --command-id "$COMMAND_ID" \
+                  --instance-id i-0ff57faaa63fae65b \
+                  --query 'StandardOutputContent' \
+                  --output text
+                exit 0
+                ;;
+              Failed|Cancelled|TimedOut|Cancelling)
+                aws ssm get-command-invocation \
+                  --region ap-south-1 \
+                  --command-id "$COMMAND_ID" \
+                  --instance-id i-0ff57faaa63fae65b \
+                  --query 'StandardErrorContent' \
+                  --output text
+                exit 1
+                ;;
+            esac
+
+            sleep 10
+          done
+
+          echo "Deployment is still running or did not finish within 5 minutes."
+          exit 1
 
       - name: Verify Docker Images
         run: docker compose images
