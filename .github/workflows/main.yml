@@ -108,7 +108,7 @@ jobs:
     needs: docker-push
     steps:
       - name: Check source IP
-        run: ifconfig.me -4
+        run: curl -4 https://ifconfig.me
     
       - name: Deploy to AWS
         env:
