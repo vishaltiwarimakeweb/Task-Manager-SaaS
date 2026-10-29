@@ -113,6 +113,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create dummy .env file in Backend directory
+        run: touch ./Backend/.env
+
       - name: Log in to ECR
         uses: aws-actions/configure-aws-credentials@v4
         with:
