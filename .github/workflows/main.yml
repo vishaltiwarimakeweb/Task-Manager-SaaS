@@ -120,7 +120,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
     
       - name: Deploy to AWS
-        run: bash ./github/scripts/deploy.sh
+        run: bash ./.github/scripts/deploy.sh
         
       - name: Verify Docker Images
         run: docker compose images
