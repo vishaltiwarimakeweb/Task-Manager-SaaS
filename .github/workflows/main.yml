@@ -106,62 +106,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: docker-push
+    permissions: 
+      id-token: write
+      contents: read
     steps:
-      - name: Check source IP
-        run: curl -4 https://ifconfig.me
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create dummy .env file in Backend directory
+        run: touch ./Backend/.env
+
+      - name: Log in to ECR
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
     
-      - name: Trigger deployment through SSM
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          COMMAND_ID=$(aws ssm send-command \
-            --region ap-south-1 \
-            --instance-ids i-0ff57faaa63fae65b \
-            --document-name AWS-RunShellScript \
-            --comment "Deploy TaskWeb from GitHub Actions" \
-            --parameters '{"commands":["sudo -u ubuntu /home/ubuntu/deploy.sh"]}' \
-            --query 'Command.CommandId' \
-            --output text)
-
-          echo "SSM command ID: $COMMAND_ID"
-
-          for attempt in $(seq 1 30); do
-            STATUS=$(aws ssm get-command-invocation \
-              --region ap-south-1 \
-              --command-id "$COMMAND_ID" \
-              --instance-id i-0ff57faaa63fae65b \
-              --query 'Status' \
-              --output text 2>/dev/null || echo "Pending")
-
-            echo "Deployment status: $STATUS"
-
-            case "$STATUS" in
-              Success)
-                aws ssm get-command-invocation \
-                  --region ap-south-1 \
-                  --command-id "$COMMAND_ID" \
-                  --instance-id i-0ff57faaa63fae65b \
-                  --query 'StandardOutputContent' \
-                  --output text
-                exit 0
-                ;;
-              Failed|Cancelled|TimedOut|Cancelling)
-                aws ssm get-command-invocation \
-                  --region ap-south-1 \
-                  --command-id "$COMMAND_ID" \
-                  --instance-id i-0ff57faaa63fae65b \
-                  --query 'StandardErrorContent' \
-                  --output text
-                exit 1
-                ;;
-            esac
-
-            sleep 10
-          done
-
-          echo "Deployment is still running or did not finish within 5 minutes."
-          exit 1
-
+      - name: Deploy to AWS
+        run: bash ./.github/scripts/deploy.sh
+        
       - name: Verify Docker Images
         run: docker compose images
