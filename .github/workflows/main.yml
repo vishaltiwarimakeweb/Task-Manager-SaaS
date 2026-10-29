@@ -107,6 +107,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker-push
     steps:
+      - name: Check source IP
+        run: ifconfig.me -4
+    
       - name: Deploy to AWS
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
