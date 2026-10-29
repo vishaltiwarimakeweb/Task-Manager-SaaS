@@ -103,5 +103,29 @@ jobs:
       - name: Push Docker Images
         run: docker compose push
 
+  deploy:
+    runs-on: ubuntu-latest
+    needs: docker-push
+    steps:
+      - name: Deploy to AWS
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_USER: ${{ vars.EC2_USER }}
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          EC2_REGISTRY_HOSTNAME: ${{ vars.EC2_REGISTRY_HOSTNAME }}
+        run: |
+          printf '%s\n' "$EC2_SSH_KEY" > key.pem
+          chmod 600 key.pem
+
+          ssh -i key.pem "$EC2_USER@$EC2_HOST" '
+            set -e
+            cd home/ubuntu/Task-Manager-SaaS
+            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$EC2_REGISTRY_HOSTNAME"
+            docker compose pull
+            docker compose up -d --remove-orphans
+          '
+          rm -f key.pem
+
       - name: Verify Docker Images
         run: docker compose images
