@@ -121,7 +121,7 @@ jobs:
           printf '%s\n' "$EC2_SSH_KEY" > key.pem
           chmod 600 key.pem
 
-          ssh -i key.pem "$EC2_USER@$EC2_HOST" '
+          ssh -i key.pem "$EC2_USER@$EC2_HOST" "AWS_REGION='$AWS_REGION' EC2_REGISTRY_HOSTNAME='$EC2_REGISTRY_HOSTNAME' bash -s" <<'REMOTE' '
             set -e
             cd home/ubuntu/Task-Manager-SaaS
             aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$EC2_REGISTRY_HOSTNAME"
