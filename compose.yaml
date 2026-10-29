@@ -1,4 +1,5 @@
 services:
+  image: 576889497241.dkr.ecr.ap-south-1.amazonaws.com/taskweb-backend:latest
   taskweb-backend:
     build:
       context: ./Backend
@@ -7,12 +8,13 @@ services:
     env_file:
       - ./Backend/.env
   taskweb-frontend:
+    image: 576889497241.dkr.ecr.ap-south-1.amazonaws.com/taskweb-frontend:latest
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
-        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
-        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+        NEXT_PUBLIC_BASE_URL: ""
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ vars.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ vars.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
     environment:
       BACKEND_URL: http://taskweb-backend:7000
     ports:
