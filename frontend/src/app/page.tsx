@@ -54,7 +54,7 @@ export default function Home() {
               <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl dark:text-white">
                 Get your work organized.
                 <span className="block text-indigo-600 dark:text-indigo-400">
-                  Get things doneee.
+                  Get things done.
                 </span>
               </h1>
 
